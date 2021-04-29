@@ -84,7 +84,7 @@ pub fn init(timer: Timer, clocks: Clocks) {
 
     // Reload upon reaching 65536
     // With this setup, the timer will overflow every 65.536 milliseconds.
-    timer.arr.write(|w| w.arr().bits(u16::MAX - 1));
+    timer.arr.write(|w| w.arr().bits(u16::MAX));
 
     // Trigger update event to load the registers
     timer.cr1.modify(|_, w| w.urs().counter_only());
