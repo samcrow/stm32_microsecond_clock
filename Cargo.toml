@@ -17,6 +17,7 @@ optional = true
 
 [features]
 "stm32f412" = ["stm32f4xx-hal/stm32f412"]
+"stm32f413" = ["stm32f4xx-hal/stm32f413"]
 
 [dev-dependencies]
 rtt-target = { version = "0.3.0", features = ["cortex-m"] }

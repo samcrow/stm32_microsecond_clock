@@ -37,10 +37,12 @@
 /// The timer peripheral that the clock uses
 #[cfg(feature = "stm32f412")]
 pub type Timer = stm32f4xx_hal::pac::TIM6;
-#[cfg(not(feature = "stm32f412"))]
+#[cfg(feature = "stm32f413")]
+pub type Timer = stm32f4xx_hal::pac::TIM6;
+#[cfg(not(any(feature = "stm32f412", feature = "stm32f413")))]
 compile_error!("stm32_microsecond_clock requires a feature to select the target device");
 // Implementation-specific clock information type
-#[cfg(feature = "stm32f412")]
+#[cfg(any(feature = "stm32f412", feature = "stm32f413"))]
 use stm32f4xx_hal::rcc::Clocks;
 
 use core::convert::TryInto;
@@ -84,7 +86,8 @@ pub fn init(timer: Timer, clocks: Clocks) {
 
     // Reload upon reaching 65536
     // With this setup, the timer will overflow every 65.536 milliseconds.
-    timer.arr.write(|w| w.arr().bits(u16::MAX));
+    #[allow(unused_unsafe)] // ARR_W.bits() is unsafe on some microcontroller models.
+    timer.arr.write(|w| unsafe { w.arr().bits(u16::MAX) });
 
     // Trigger update event to load the registers
     timer.cr1.modify(|_, w| w.urs().counter_only());
@@ -169,7 +172,7 @@ pub fn handle_timer_overflow() {
 }
 
 /// Enables the clock for the timer and returns its frequency in Hertz
-#[cfg(feature = "stm32f412")]
+#[cfg(any(feature = "stm32f412", feature = "stm32f413"))]
 fn enable_timer_clock(clocks: Clocks) -> u32 {
     unsafe {
         use stm32f4xx_hal::bb;
