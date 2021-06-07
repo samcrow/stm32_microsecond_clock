@@ -38,7 +38,7 @@
 #[cfg(feature = "stm32f412")]
 pub type Timer = stm32f4xx_hal::pac::TIM6;
 #[cfg(feature = "stm32f413")]
-pub type Timer = stm32f4xx_hal::pac::TIM6;
+pub type Timer = stm32f4xx_hal::pac::TIM10;
 #[cfg(not(any(feature = "stm32f412", feature = "stm32f413")))]
 compile_error!("stm32_microsecond_clock requires a feature to select the target device");
 // Implementation-specific clock information type
@@ -172,7 +172,7 @@ pub fn handle_timer_overflow() {
 }
 
 /// Enables the clock for the timer and returns its frequency in Hertz
-#[cfg(any(feature = "stm32f412", feature = "stm32f413"))]
+#[cfg(feature = "stm32f412")]
 fn enable_timer_clock(clocks: Clocks) -> u32 {
     unsafe {
         use stm32f4xx_hal::bb;
@@ -185,5 +185,24 @@ fn enable_timer_clock(clocks: Clocks) -> u32 {
     }
     let pclk_mul = if clocks.ppre1() == 1 { 1 } else { 2 };
     let frequency_in = clocks.pclk1().0 * pclk_mul;
+    frequency_in
+}
+
+/// Enables the clock for the timer and returns its frequency in Hertz
+#[cfg(feature = "stm32f413")]
+fn enable_timer_clock(clocks: Clocks) -> u32 {
+    // Timer 10 is connected to APB2
+    unsafe {
+        use stm32f4xx_hal::bb;
+        use stm32f4xx_hal::pac::RCC;
+        let rcc = &*RCC::ptr();
+        const TIM10_BIT: u8 = 17;
+        bb::set(&rcc.apb2enr, TIM10_BIT);
+        cortex_m::asm::dsb();
+        bb::set(&rcc.apb2rstr, TIM10_BIT);
+        bb::clear(&rcc.apb2rstr, TIM10_BIT);
+    }
+    let pclk_mul = if clocks.ppre2() == 1 { 1 } else { 2 };
+    let frequency_in = clocks.pclk2().0 * pclk_mul;
     frequency_in
 }
