@@ -23,7 +23,7 @@ fn main() -> ! {
     let clocks = dp.RCC.constrain().cfgr.freeze();
 
     stm32_microsecond_clock::init(dp.TIM6, clocks);
-    let mut delay = Delay::new(cp.SYST, clocks);
+    let mut delay = Delay::new(cp.SYST, &clocks);
 
     unsafe {
         cortex_m::peripheral::NVIC::unmask(interrupt::TIM6_DACUNDER);
