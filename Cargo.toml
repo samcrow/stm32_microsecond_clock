@@ -1,6 +1,6 @@
 [package]
 name = "stm32_microsecond_clock"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Sam Crow <scrow@eng.ucsd.edu>"]
 edition = "2018"
 repository = "https://github.com/samcrow/stm32_microsecond_clock"
