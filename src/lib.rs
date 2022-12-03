@@ -73,7 +73,7 @@ impl Clock for MicrosecondClock {
 ///
 /// After calling this function, the timer interrupt must be unmasked in the nested vector interrupt
 /// controller.
-pub fn init(timer: Timer, clocks: Clocks) {
+pub fn init(timer: Timer, clocks: &Clocks) {
     let frequency_in = enable_timer_clock(clocks);
 
     // Configure prescaler so 1 tick = 1 microsecond (1 megahertz)
@@ -173,7 +173,7 @@ pub fn handle_timer_overflow() {
 
 /// Enables the clock for the timer and returns its frequency in Hertz
 #[cfg(feature = "stm32f412")]
-fn enable_timer_clock(clocks: Clocks) -> u32 {
+fn enable_timer_clock(clocks: &Clocks) -> u32 {
     unsafe {
         use stm32f4xx_hal::bb;
         use stm32f4xx_hal::pac::RCC;
@@ -184,13 +184,13 @@ fn enable_timer_clock(clocks: Clocks) -> u32 {
         bb::clear(&rcc.apb1rstr, 4);
     }
     let pclk_mul = if clocks.ppre1() == 1 { 1 } else { 2 };
-    let frequency_in = clocks.pclk1().0 * pclk_mul;
+    let frequency_in = clocks.pclk1().raw() * pclk_mul;
     frequency_in
 }
 
 /// Enables the clock for the timer and returns its frequency in Hertz
 #[cfg(feature = "stm32f413")]
-fn enable_timer_clock(clocks: Clocks) -> u32 {
+fn enable_timer_clock(clocks: &Clocks) -> u32 {
     // Timer 10 is connected to APB2
     unsafe {
         use stm32f4xx_hal::bb;
@@ -203,6 +203,6 @@ fn enable_timer_clock(clocks: Clocks) -> u32 {
         bb::clear(&rcc.apb2rstr, TIM10_BIT);
     }
     let pclk_mul = if clocks.ppre2() == 1 { 1 } else { 2 };
-    let frequency_in = clocks.pclk2().0 * pclk_mul;
+    let frequency_in = clocks.pclk2().raw() * pclk_mul;
     frequency_in
 }
